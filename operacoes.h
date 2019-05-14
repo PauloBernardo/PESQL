@@ -27,6 +27,22 @@ void printTables (Table raiz) {
       printTables(raiz->direita);
    }
 }
+void printCollumns (Collumn raiz) {
+   if (raiz != NULL) {
+      if (strcmp(raiz->name, "NNNNNNNNNNNNNNNNNN"))
+         printf ("%s\n", raiz->name);
+      printCollumns (raiz->esquerda);
+      printCollumns(raiz->direita);
+   }
+}
+void printCollumnsCompleto (Collumn raiz) {
+   if (raiz != NULL) {
+      if (strcmp(raiz->name, "NNNNNNNNNNNNNNNNNN"))
+         printf ("| %s | %s |\n", raiz->name, raiz->tipo);
+      printCollumnsCompleto (raiz->esquerda);
+      printCollumnsCompleto(raiz->direita);
+   }
+}
 Table addTable (Table db, Table novo) { 
     if (db == NULL) return novo;
     if (strcmp(db->name, novo->name) > 0) 
