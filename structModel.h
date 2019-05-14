@@ -41,6 +41,7 @@ typedef struct boolean *Booleano;
 struct varchar
 {
     unsigned int id;
+    unsigned int size;
     struct varchar *proximo;
     char *valor;
 };

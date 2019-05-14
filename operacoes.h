@@ -11,6 +11,22 @@ DataBase addDataBase (DataBase db, DataBase novo) {
         printf("Erro, banco já existe");
     return db;
 }
+void printDataBases (DataBase raiz) {
+   if (raiz != NULL) {
+      if (strcmp(raiz->name, "NNNNNNNNNNNNNNNNNN"))
+         printf ("%s\n", raiz->name);
+      printDataBases (raiz->esquerda);
+      printDataBases(raiz->direita);
+   }
+}
+void printTables (Table raiz) {
+   if (raiz != NULL) {
+      if (strcmp(raiz->name, "NNNNNNNNNNNNNNNNNN"))
+         printf ("%s\n", raiz->name);
+      printTables (raiz->esquerda);
+      printTables(raiz->direita);
+   }
+}
 Table addTable (Table db, Table novo) { 
     if (db == NULL) return novo;
     if (strcmp(db->name, novo->name) > 0) 
@@ -22,6 +38,7 @@ Table addTable (Table db, Table novo) {
     return db;
 }
 Collumn addCollumn (Collumn db, Collumn novo) { 
+   //printf("Adicionando collumn\n");
     if (db == NULL) return novo;
     if (strcmp(db->name, novo->name) > 0) 
        db->esquerda = addCollumn (db->esquerda, novo);

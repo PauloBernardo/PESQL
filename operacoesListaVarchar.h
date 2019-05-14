@@ -2,47 +2,53 @@
 #include <stdlib.h>
 #include <string.h>
 void 
-insereChar (Char p, char x)
+insereVarchar (Varchar p, char *x)
 {
-   Char nova, aux;
+   Varchar nova, aux;
+   char *aux1;
+   aux1 = malloc ((strlen(x) +1) * sizeof(char));
+   strcpy(aux1, x);
    aux = p;
    while (aux->proximo != NULL) aux = aux->proximo;
    nova = malloc (sizeof (struct caracter));
-   nova->valor = x;
+   nova->size = aux->size;
    nova->id = aux->id + 1;
+   nova->valor = malloc((nova->size + 2) * sizeof(char));
+   if (strlen(aux1) > nova->size) aux1[nova->size-1] = '\0';
+   strcpy (nova->valor, aux1);
    nova->proximo = aux->proximo;
    aux->proximo = nova;
 }
-void printListChar(Char lista){
-    Char aux;
+void printListVarchar(Varchar lista){
+    Varchar aux;
     aux = lista;
     while (aux != NULL) {
-        printf("%d %d\n",aux->id, aux->valor);
+        printf("%d %s\n",aux->id, aux->valor);
         aux = aux->proximo;
     }
 }
-Char
-buscaCharByValor (char x, Char le)
+Varchar
+buscaVarcharByValor (char *x, Varchar le)
 {
-    Char p;
+    Varchar p;
    p = le;
-   while (p != NULL && p->valor != x) 
+   while (p != NULL && strcmp (p->valor, x) != 0)
       p = p->proximo; 
    return p;
 }
-Char
-buscaCharById (unsigned int x, Char le)
+Varchar
+buscaVarcharById (unsigned int x, Varchar le)
 {
-    Char p;
+    Varchar p;
    p = le;
    while (p != NULL && p->id != x) 
       p = p->proximo; 
    return p;
 }
 void 
-removeCharById (Char p, unsigned int x)
+removeVarcharById (Varchar p, unsigned int x)
 {
-   Char lixo, aux;
+   Varchar lixo, aux;
    aux = p;
    lixo = p->proximo;
    while (lixo != NULL && lixo->id != x) {
@@ -55,12 +61,12 @@ removeCharById (Char p, unsigned int x)
    free (lixo);
 }
 void 
-removeCharByValor (Char p, char x)
+removeVarcharByValor (Varchar p, char *x)
 {
-   Char lixo, aux;
+   Varchar lixo, aux;
    aux = p;
    lixo = p->proximo;
-   while (lixo != NULL && lixo->valor != x) {
+   while (lixo != NULL && strcmp(lixo->valor, x) != 0) {
        aux = lixo;
        lixo = lixo->proximo;
    }
