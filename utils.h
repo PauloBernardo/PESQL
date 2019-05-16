@@ -75,7 +75,32 @@ char** splitByChars (char *resposta, char *chars) {
     }
     return processado;
 }
-
+char** splitByCharsButNoRemove (char *resposta, char *chars) {
+    char **processado;
+    int i, j= 0, x = 0, flag = 0, z;
+    processado = malloc (255 * sizeof(char *));
+    processado[0] = malloc(255*sizeof(char));
+    //printf ("asjdg");
+    for (i = 0; i < strlen(resposta); i++) {
+        for (z = 0; z < strlen (chars); z++) {
+            //printf ("%c %c", chars[z], resposta[i]);
+            if (resposta[i] == chars[z]) flag = 1;
+        }
+        if (!flag) processado[j][x++] = resposta[i];
+        else if (flag == 1 && x != 0){
+            processado[j][x] = '\0';
+            x = 0;
+            j++;
+            processado[j] = malloc(255*sizeof(char));
+            processado[j][0] = resposta[i];
+            processado[j][1] = '\0';
+            j++;
+            processado[j] = malloc(255*sizeof(char));
+        }
+        flag = 0;
+    }
+    return processado;
+}
 int verificaInteiro (char *numero) {
     int i;
     for (i = 0; i < strlen(numero); i++) {

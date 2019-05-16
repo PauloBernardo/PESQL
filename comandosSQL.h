@@ -442,6 +442,221 @@ void selectFromSQL (DataBase db, char **processado, int tam, int num) {
         collumns = malloc (numeroColunasPesquisadas * sizeof(Collumn));
         for (i = 0, j= 0; i < numeroColunasPesquisadas && nomeColunas[i] != NULL; i++, j++) {
             collumns[j] = buscaCollumn(selectedTable->columns, nomeColunas[i]);
+            if (collumns[j] == NULL) {
+                printf ("Erro, coluna %s não encontrada\n", nomeColunas[i]);
+                return;
+            }
+        }
+       // printf ("OPA");
+        //printf ("%s\n", collumns[0]->tipo);
+        
+        int *listaIDs, tamanhoLista;
+        switch (getType(collumns[0]->tipo))
+        {
+        case 1:
+            tamanhoLista = getTamanhoListaInteger (collumns[0]->integers);
+            //printf ("Tamanho = %d\n", tamanhoLista);
+            listaIDs = malloc(tamanhoLista * sizeof(int));
+             listaIDs = listarIdOfCollumnInteger (collumns[0]->integers, listaIDs);
+            break;
+        case 2:
+            tamanhoLista = getTamanhoListaBoolean (collumns[0]->booleans);
+            //printf ("Tamanho = %d\n", tamanhoLista);
+            listaIDs = malloc(tamanhoLista * sizeof(int));
+            listaIDs = listarIdOfCollumnBoolean (collumns[0]->booleans, listaIDs);
+            break;
+        case 3:
+            tamanhoLista = getTamanhoListaVarchar (collumns[0]->varchars);
+            //printf ("Tamanho = %d\n", tamanhoLista);
+            listaIDs = malloc(tamanhoLista * sizeof(int));
+            listaIDs = listarIdOfCollumnVarchar(collumns[0]->varchars, listaIDs);
+            break;
+        case 4:
+            tamanhoLista = getTamanhoListaChar (collumns[0]->chars);
+            //printf ("Tamanho = %d\n", tamanhoLista);
+            listaIDs = malloc(tamanhoLista * sizeof(int));
+            listaIDs = listarIdOfCollumnChar(collumns[0]->chars, listaIDs);
+            break;
+        default:
+            printf ("Erro, tipo da coluna não suportado.\n");
+            break;
+        }
+        for (int i = 0; i < numeroColunasPesquisadas; i++) {
+            printf ("| %s |", nomeColunas[i]);
+        }
+        printf ("\n");
+        Collumn aux;
+        for (i = 1; i < tamanhoLista; i++) {
+            for (j = 0; j < numeroColunasPesquisadas; j++) {
+                aux = buscaCollumn (selectedTable->columns, nomeColunas[j]);
+                switch (getType(aux->tipo)) {
+                    case 1:
+                        printf ("| %d |", buscaIntegerById(listaIDs[i], aux->integers)->valor);
+                        break;
+                    case 2:
+                        printf ("| %d |", buscaBooleanById(listaIDs[i], aux->booleans)->valor);
+                        break;
+                    case 3:
+                        printf ("| %s |", buscaVarcharById(listaIDs[i], aux->varchars)->valor);
+                        break;
+                    case 4:
+                        printf ("| %c |", buscaCharById(listaIDs[i], aux->chars)->valor);
+                        break;
+                }
+            }
+            printf ("\n");
+        }
+    }
+}
+
+void selectFromWhereSQL (DataBase db, char ** processado,int tam, int num) {
+    int i, j;
+    char *colunas;
+    if (db == NULL) {
+        printf ("Erro, banco de dados não selecionado.\n");
+        return;
+    }
+    Table selectedTable = buscaTable (db->tables, processado[num+1]);
+    if (selectedTable == NULL) {
+        printf ("Erro, table não existe.\n");
+        return;
+    }
+    colunas = malloc(255 * sizeof(char));
+    strcpy (colunas, "");
+    for (i = 1; i < num; i++) {
+        strcat (colunas, processado[i]);
+    }
+    if (colunas[strlen(colunas)-1] ==  ',') {
+        printf ("Erro de sintaxe identicado.\n");
+        return;
+    }
+    char **nomeColunas = splitByChars (colunas, ",");
+    int numeroColunasPesquisadas = 0;
+    for (i = 0; i < 255 && nomeColunas[i] != NULL; i++) {
+         //printf("%s\n", nomeColunas[i]);
+         numeroColunasPesquisadas++;
+    }
+    char *expressao;
+    expressao = malloc (255*sizeof(255));
+    strcpy (expressao, "");
+    for (i = num+3; i < tam; i++) {
+        strcat (expressao, processado[i]);
+    }
+    char **nomeExpressao = splitByCharsButNoRemove (expressao, "=");
+    int numeroExpressaoPesquisadas = 0;
+    for (i = 0; i < 255 && nomeExpressao[i] != NULL; i++) {
+         //printf("%s\n", nomeExpressao[i]);
+         numeroExpressaoPesquisadas++;
+    }
+    if (numeroExpressaoPesquisadas != 3) {
+        printf ("NOT SUPPORTED YET\n");
+        return;
+    }
+    if (strcmp(nomeColunas[0], "*") == 0) {
+        int numero = numeroDeColunas(selectedTable->columns);
+        char **todasColunas = splitByChars (getNomeColunas(selectedTable->columns), ",");
+        Collumn *collumns;
+        collumns = malloc (numero * sizeof(Collumn));
+        for (i = 1, j= 0; i < numero && todasColunas[i] != NULL; i++, j++) {
+            collumns[j] = buscaCollumn(selectedTable->columns, todasColunas[i]);
+        }
+        int op = 0;
+        for (i = 1, j= 0; i < numero && todasColunas[i] != NULL; i++, j++) {
+            if (strcmp(todasColunas[i], nomeExpressao[0]) == 0) op = j;
+            //collumns[j] = buscaCollumn(selectedTable->columns, todasColunas[i]);
+        }
+       // printf ("OPA");
+        //printf ("%s\n", collumns[0]->tipo);
+        if (collumns[op] == NULL) {
+            printf ("Erro, deu merda aqui");
+            return;
+        } else {
+            //printf ("%s\n", collumns[op]->name);
+            
+        }
+        
+        //return;
+        int *listaIDs, tamanhoLista;
+        switch (getType(collumns[op]->tipo))
+        {
+        case 1:
+            tamanhoLista = getTamanhoListaInteger (collumns[op]->integers);
+            //printf ("Tamanho = %d\n", tamanhoLista);
+            listaIDs = malloc(tamanhoLista * sizeof(int));
+            //printf ("%d %c\n", atoi (nomeExpressao[2]), nomeExpressao[1][0]);
+            for (i = 0; i < tamanhoLista; i++) {
+                listaIDs[i] = -1;
+            }
+             listaIDs = listarIdOfCollumnIntegerByValor (collumns[op]->integers, listaIDs, atoi(nomeExpressao[2]), nomeExpressao[1][0]);
+             //   listaIDs = listarIdOfCollumnInteger (collumns[op]->integers, listaIDs);
+            break;
+        case 2:
+            tamanhoLista = getTamanhoListaBoolean (collumns[op]->booleans);
+            //printf ("Tamanho = %d\n", tamanhoLista);
+            listaIDs = malloc(tamanhoLista * sizeof(int));
+            for (i = 0; i < tamanhoLista; i++) {
+                listaIDs[i] = -1;
+            }
+            listaIDs = listarIdOfCollumnBooleanByValor (collumns[op]->booleans, listaIDs, nomeExpressao[2]);
+            break;
+        case 3:
+            tamanhoLista = getTamanhoListaVarchar (collumns[op]->varchars);
+            //printf ("Tamanho = %d\n", tamanhoLista);
+            listaIDs = malloc(tamanhoLista * sizeof(int));
+            for (i = 0; i < tamanhoLista; i++) {
+                listaIDs[i] = -1;
+            }
+            listaIDs = listarIdOfCollumnVarcharByValor(collumns[op]->varchars, listaIDs, nomeExpressao[2], nomeExpressao[1][0]);
+            break;
+        case 4:
+            tamanhoLista = getTamanhoListaChar (collumns[op]->chars);
+            //printf ("Tamanho = %d\n", tamanhoLista);
+            listaIDs = malloc(tamanhoLista * sizeof(int));
+            for (i = 0; i < tamanhoLista; i++) {
+                listaIDs[i] = -1;
+            }
+            listaIDs = listarIdOfCollumnCharByValor(collumns[op]->chars, listaIDs, nomeExpressao[2][1], nomeExpressao[1][0]);
+            break;
+        default:
+            printf ("Erro, tipo da coluna não suportado.\n");
+            break;
+        }
+        for (int i = 1; i < numero; i++) {
+            printf ("| %s |", todasColunas[i]);
+        }
+        printf ("\n");
+        Collumn aux;
+        for (i = 0; i < tamanhoLista && listaIDs[i] > 0; i++) {
+            //printf("%d", listaIDs[i]);
+            for (j = 1; j < numero; j++) {
+                aux = buscaCollumn (selectedTable->columns, todasColunas[j]);
+                switch (getType(aux->tipo)) {
+                    case 1:
+                        printf ("| %d |", buscaIntegerById(listaIDs[i], aux->integers)->valor);
+                        break;
+                    case 2:
+                        printf ("| %d |", buscaBooleanById(listaIDs[i], aux->booleans)->valor);
+                        break;
+                    case 3:
+                        printf ("| %s |", buscaVarcharById(listaIDs[i], aux->varchars)->valor);
+                        break;
+                    case 4:
+                        printf ("| %c |", buscaCharById(listaIDs[i], aux->chars)->valor);
+                        break;
+                }
+            }
+            printf ("\n");
+        }
+            
+    } else {
+        Collumn *collumns;
+        collumns = malloc (numeroColunasPesquisadas * sizeof(Collumn));
+        for (i = 0, j= 0; i < numeroColunasPesquisadas && nomeColunas[i] != NULL; i++, j++) {
+            collumns[j] = buscaCollumn(selectedTable->columns, nomeColunas[i]);
+            if (collumns[j] == NULL) {
+                printf ("Erro, coluna %s não encontrada\n", nomeColunas[i]);
+                return;
+            }
         }
        // printf ("OPA");
         //printf ("%s\n", collumns[0]->tipo);

@@ -56,12 +56,17 @@ DataBase decoder (DataBase raiz, char **processado, int tam){
          }
     } 
     if (strcmp(processado[0], "SELECT") == 0) {
-        int i;
+        int i, op = 0, from = 0;
         for (i = 1; i < tam-1; i++) {
             if (strcmp(processado[i], "FROM") == 0) {
-                selectFromSQL (db, processado, tam, i);
+                op = 1;
+                from = i;
+            } else if (strcmp(processado[i], "WHERE") == 0) {
+                if (op) op = 2;
             }
         }
+        if (op == 1) selectFromSQL (db, processado, tam, from);
+        if (op == 2) selectFromWhereSQL (db, processado, tam, from);
     }
     return raiz;
 } 

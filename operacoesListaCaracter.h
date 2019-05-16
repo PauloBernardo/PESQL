@@ -31,6 +31,24 @@ int * listarIdOfCollumnChar (Char lista,   int *ids) {
     }
     return ids;
 }
+int * listarIdOfCollumnCharByValor (Char lista, int *ids, char valor, char op) {
+   Char aux;
+    aux = lista;
+    int i = 0;
+    while (aux != NULL) {
+        if (op == '='){
+            if (valor ==  aux->valor) ids[i++] = aux->id;
+        }
+        else if (op == '>') {
+            if (valor >  aux->valor) ids[i++] = aux->id;   
+        }
+        else if (op == '<') {
+            if (valor <  aux->valor) ids[i++] = aux->id;   
+        }
+        aux = aux->proximo;
+    }
+    return ids;
+}
 int getTamanhoListaChar (Char lista) {
    Char aux = lista;
    int qnt = 0;

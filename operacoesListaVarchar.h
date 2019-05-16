@@ -37,6 +37,26 @@ int * listarIdOfCollumnVarchar (Varchar lista,   int *ids) {
     }
     return ids;
 }
+int * listarIdOfCollumnVarcharByValor (Varchar lista, int *ids, char * valor, char op) {
+   Varchar aux;
+    aux = lista;
+    int i = 0;
+    while (aux != NULL) {
+        if (op == '=') {
+            if (strcmp (valor,  aux->valor) == 0) ids[i++] = aux->id;
+        }
+        else if (op == '>') {
+            if (strcmp (valor,  aux->valor) < 0 ) ids[i++] = aux->id;
+        }
+            
+        else if (op == '<') {
+            if (strcmp (valor,  aux->valor) > 0 ) ids[i++] = aux->id;
+        }
+            
+        aux = aux->proximo;
+    }
+    return ids;
+}
 int getTamanhoListaVarchar (Varchar lista) {
    Varchar aux = lista;
    int qnt = 0;

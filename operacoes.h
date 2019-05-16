@@ -225,6 +225,17 @@ int * listarIdOfCollumnBoolean (Booleano lista,   int *ids) {
     }
     return ids;
 }
+int * listarIdOfCollumnBooleanByValor (Booleano lista, int *ids, char * valor) {
+   Booleano aux;
+    aux = lista;
+    int i = 0;
+    while (aux != NULL) {
+       if (strcmp (valor, "TRUE") == 0 && aux->valor) ids[i++] = aux->id;
+       if (strcmp (valor, "FALSE") == 0 && !aux->valor) ids[i++] = aux->id;
+        aux = aux->proximo;
+    }
+    return ids;
+}
 int getTamanhoListaBoolean (Booleano lista) {
    Booleano aux = lista;
    int qnt = 0;
@@ -310,6 +321,24 @@ int * listarIdOfCollumnInteger (Integer lista,   int *ids) {
     int i = 0;
     while (aux != NULL) {
        ids[i++] = aux->id;
+        aux = aux->proximo;
+    }
+    return ids;
+}
+int * listarIdOfCollumnIntegerByValor (Integer lista, int *ids, int valor, char op) {
+   Integer aux;
+    aux = lista;
+    int i = 0;
+    
+    while (aux != NULL) {
+       if (op == '=') {
+          if (valor == aux->valor) ids[i++] = aux->id;
+       } else if (op == '>') {
+          if (valor > aux->valor) ids[i++] = aux->id;
+       } else if (op == '<') {
+          if (valor < aux->valor) ids[i++] = aux->id;
+       }
+       
         aux = aux->proximo;
     }
     return ids;
