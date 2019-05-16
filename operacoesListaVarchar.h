@@ -27,6 +27,25 @@ void printListVarchar(Varchar lista){
         aux = aux->proximo;
     }
 }
+int * listarIdOfCollumnVarchar (Varchar lista,   int *ids) {
+   Varchar aux;
+    aux = lista;
+    int i = 0;
+    while (aux != NULL) {
+       ids[i++] = aux->id;
+        aux = aux->proximo;
+    }
+    return ids;
+}
+int getTamanhoListaVarchar (Varchar lista) {
+   Varchar aux = lista;
+   int qnt = 0;
+   while (aux != NULL) {
+       qnt++;
+        aux = aux->proximo;
+    }
+    return qnt;
+}
 Varchar
 buscaVarcharByValor (char *x, Varchar le)
 {

@@ -151,6 +151,24 @@ Collumn buscaCollumn (Collumn r, char *k) {
     else
        return buscaCollumn (r->direita, k);
 }
+int numeroDeColunas (Collumn r) {
+   if (r != NULL) {
+      return numeroDeColunas (r->direita) + numeroDeColunas (r->esquerda) + 1;
+   }
+   return 0;
+}
+char * getNomeColunas (Collumn r) {
+   if (r != NULL) {  
+      char * aux;
+      aux = malloc(10000 * sizeof(char));
+      strcpy (aux, ",");
+      strcat (aux, r->name);
+      strcat (aux, getNomeColunas(r->direita));
+      strcat (aux, getNomeColunas(r->esquerda));
+      return aux;
+   }
+   return ",";
+}
 DataBase removeDatabase (DataBase r, char *k) {
     if (r == NULL || strcmp(r->name,k) == 0)
         return removeraizDatabase(r);
@@ -196,6 +214,25 @@ void printListBooleano(Booleano lista){
         printf("%d %d\n",aux->id, aux->valor);
         aux = aux->proximo;
     }
+}
+int * listarIdOfCollumnBoolean (Booleano lista,   int *ids) {
+   Booleano aux;
+    aux = lista;
+    int i = 0;
+    while (aux != NULL) {
+       ids[i++] = aux->id;
+        aux = aux->proximo;
+    }
+    return ids;
+}
+int getTamanhoListaBoolean (Booleano lista) {
+   Booleano aux = lista;
+   int qnt = 0;
+   while (aux != NULL) {
+       qnt++;
+        aux = aux->proximo;
+    }
+    return qnt;
 }
 Booleano
 buscaBooleanoByValor (int x, Booleano le)
@@ -266,6 +303,25 @@ void printList(Integer lista){
         printf("%d %d\n",aux->id, aux->valor);
         aux = aux->proximo;
     }
+}
+int * listarIdOfCollumnInteger (Integer lista,   int *ids) {
+   Integer aux;
+    aux = lista;
+    int i = 0;
+    while (aux != NULL) {
+       ids[i++] = aux->id;
+        aux = aux->proximo;
+    }
+    return ids;
+}
+int getTamanhoListaInteger (Integer lista) {
+   Integer aux = lista;
+   int qnt = 0;
+   while (aux != NULL) {
+       qnt++;
+        aux = aux->proximo;
+    }
+    return qnt;
 }
 Integer
 buscaIntegerByValor (int x, Integer le)

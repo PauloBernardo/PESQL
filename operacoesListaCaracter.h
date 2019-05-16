@@ -21,6 +21,25 @@ void printListChar(Char lista){
         aux = aux->proximo;
     }
 }
+int * listarIdOfCollumnChar (Char lista,   int *ids) {
+   Char aux;
+    aux = lista;
+    int i = 0;
+    while (aux != NULL) {
+       ids[i++] = aux->id;
+        aux = aux->proximo;
+    }
+    return ids;
+}
+int getTamanhoListaChar (Char lista) {
+   Char aux = lista;
+   int qnt = 0;
+   while (aux != NULL) {
+       qnt++;
+        aux = aux->proximo;
+    }
+    return qnt;
+}
 Char
 buscaCharByValor (char x, Char le)
 {

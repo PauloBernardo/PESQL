@@ -55,6 +55,14 @@ DataBase decoder (DataBase raiz, char **processado, int tam){
              db = alterTableModifySQL (db, processado, tam);
          }
     } 
+    if (strcmp(processado[0], "SELECT") == 0) {
+        int i;
+        for (i = 1; i < tam-1; i++) {
+            if (strcmp(processado[i], "FROM") == 0) {
+                selectFromSQL (db, processado, tam, i);
+            }
+        }
+    }
     return raiz;
 } 
 
