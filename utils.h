@@ -12,23 +12,7 @@ int getType (char *tipo) {
         return 4;
     return 0;
 }
-int getSize (char **processado, int tam) {
-    char *aux;
-    aux = malloc (255 * sizeof(char));
-    int i, j = 0, x= 0, flag = 0;
-    for (i=6; i < tam; i++) {
-        for (j == 0; j < strlen (processado[i]); j++) {
-            if (processado[i][j] == '[') {
-                flag = 1;
-            } else if ( flag == 1) {
-                aux[x++] = processado[i][j];
-            } else if (processado[i] [j] == ']') {
-                aux[x] = '\0';
-                return atoi(aux);
-            }
-        }
-    }
-}
+
 char ** processar (char * resposta) {
     char **processado;
     int i, j= 0, x = 0, parenteses = 0;
@@ -119,4 +103,10 @@ int verificaVarchar (char *v) {
 int verificaChar (char *v) {
     if (v[0] == '\'' && v[strlen(v) - 1] == '\'') return 1;
     return 0;
+}
+int getSize (char *processado) {
+   // printf("oxsnkjdvh");
+    char **aux;
+    aux = splitByChars (processado, "[]");
+    return atoi(aux[0]);
 }

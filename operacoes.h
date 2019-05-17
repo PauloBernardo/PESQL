@@ -334,9 +334,9 @@ int * listarIdOfCollumnIntegerByValor (Integer lista, int *ids, int valor, char 
        if (op == '=') {
           if (valor == aux->valor) ids[i++] = aux->id;
        } else if (op == '>') {
-          if (valor > aux->valor) ids[i++] = aux->id;
-       } else if (op == '<') {
           if (valor < aux->valor) ids[i++] = aux->id;
+       } else if (op == '<') {
+          if (valor > aux->valor) ids[i++] = aux->id;
        }
        
         aux = aux->proximo;

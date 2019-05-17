@@ -131,7 +131,8 @@ DataBase alterTableAddSQL (DataBase db, char **processado, int tam) {
         break;
     case 3:
         strcpy (novo->tipo,"VARCHAR");
-        int size = getSize (processado, tam);
+        int size = getSize (processado[7]);
+        //printf ("%d\n", size);
         Varchar inicio;
         inicio = malloc(sizeof (struct varchar));
         inicio->id = 0;
@@ -195,7 +196,7 @@ DataBase alterTableModifySQL (DataBase db, char **processado, int tam) {
         break;
     case 3:
         strcpy (collumn->tipo,"VARCHAR");
-        int size = getSize (processado, tam);
+        int size = getSize (processado[7]);
         Varchar inicio;
         inicio = malloc(sizeof (struct varchar));
         inicio->id = 0;
@@ -234,7 +235,10 @@ DataBase insertIntoValuesSQL (DataBase db, char *table, char *collumns, char *va
     char **valores = splitByChars(values, help);
     int numeroColunas = 0, numeroValores = 0, j;
     for (j = 0; j < 255 && nomeColunas[j] != NULL; j++) numeroColunas++;
-    for (j = 0; j < 255 && valores[j] != NULL; j++) numeroValores++;
+    for (j = 0; j < 255 && valores[j] != NULL; j++) {
+       // printf ("%s\n", valores[j]);
+        numeroValores++;
+    }
     if (numeroColunas != numeroValores) {
         printf ("Erro: Inconsistencia nos dados.\n");
         return db;
@@ -542,7 +546,7 @@ void selectFromWhereSQL (DataBase db, char ** processado,int tam, int num) {
     for (i = num+3; i < tam; i++) {
         strcat (expressao, processado[i]);
     }
-    char **nomeExpressao = splitByCharsButNoRemove (expressao, "=");
+    char **nomeExpressao = splitByCharsButNoRemove (expressao, "=><");
     int numeroExpressaoPesquisadas = 0;
     for (i = 0; i < 255 && nomeExpressao[i] != NULL; i++) {
          //printf("%s\n", nomeExpressao[i]);
@@ -552,7 +556,7 @@ void selectFromWhereSQL (DataBase db, char ** processado,int tam, int num) {
         printf ("NOT SUPPORTED YET\n");
         return;
     }
-    if (strcmp(nomeColunas[0], "*") == 0) {
+    
         int numero = numeroDeColunas(selectedTable->columns);
         char **todasColunas = splitByChars (getNomeColunas(selectedTable->columns), ",");
         Collumn *collumns;
@@ -621,6 +625,7 @@ void selectFromWhereSQL (DataBase db, char ** processado,int tam, int num) {
             printf ("Erro, tipo da coluna não suportado.\n");
             break;
         }
+    if (strcmp(nomeColunas[0], "*") == 0) {
         for (int i = 1; i < numero; i++) {
             printf ("| %s |", todasColunas[i]);
         }
@@ -649,55 +654,20 @@ void selectFromWhereSQL (DataBase db, char ** processado,int tam, int num) {
         }
             
     } else {
-        Collumn *collumns;
-        collumns = malloc (numeroColunasPesquisadas * sizeof(Collumn));
-        for (i = 0, j= 0; i < numeroColunasPesquisadas && nomeColunas[i] != NULL; i++, j++) {
-            collumns[j] = buscaCollumn(selectedTable->columns, nomeColunas[i]);
-            if (collumns[j] == NULL) {
-                printf ("Erro, coluna %s não encontrada\n", nomeColunas[i]);
+        for (int i = 0; i < numeroColunasPesquisadas; i++) {
+            Collumn aux = buscaCollumn (selectedTable->columns, nomeColunas[i]);
+            if (aux == NULL) {
+                printf ("Erro, coluna %s não existe.\n", nomeColunas[i]);
                 return;
             }
-        }
-       // printf ("OPA");
-        //printf ("%s\n", collumns[0]->tipo);
-        
-        int *listaIDs, tamanhoLista;
-        switch (getType(collumns[0]->tipo))
-        {
-        case 1:
-            tamanhoLista = getTamanhoListaInteger (collumns[0]->integers);
-            //printf ("Tamanho = %d\n", tamanhoLista);
-            listaIDs = malloc(tamanhoLista * sizeof(int));
-             listaIDs = listarIdOfCollumnInteger (collumns[0]->integers, listaIDs);
-            break;
-        case 2:
-            tamanhoLista = getTamanhoListaBoolean (collumns[0]->booleans);
-            //printf ("Tamanho = %d\n", tamanhoLista);
-            listaIDs = malloc(tamanhoLista * sizeof(int));
-            listaIDs = listarIdOfCollumnBoolean (collumns[0]->booleans, listaIDs);
-            break;
-        case 3:
-            tamanhoLista = getTamanhoListaVarchar (collumns[0]->varchars);
-            //printf ("Tamanho = %d\n", tamanhoLista);
-            listaIDs = malloc(tamanhoLista * sizeof(int));
-            listaIDs = listarIdOfCollumnVarchar(collumns[0]->varchars, listaIDs);
-            break;
-        case 4:
-            tamanhoLista = getTamanhoListaChar (collumns[0]->chars);
-            //printf ("Tamanho = %d\n", tamanhoLista);
-            listaIDs = malloc(tamanhoLista * sizeof(int));
-            listaIDs = listarIdOfCollumnChar(collumns[0]->chars, listaIDs);
-            break;
-        default:
-            printf ("Erro, tipo da coluna não suportado.\n");
-            break;
         }
         for (int i = 0; i < numeroColunasPesquisadas; i++) {
             printf ("| %s |", nomeColunas[i]);
         }
         printf ("\n");
         Collumn aux;
-        for (i = 1; i < tamanhoLista; i++) {
+        for (i = 0; i < tamanhoLista && listaIDs[i] > 0; i++) {
+            
             for (j = 0; j < numeroColunasPesquisadas; j++) {
                 aux = buscaCollumn (selectedTable->columns, nomeColunas[j]);
                 switch (getType(aux->tipo)) {
