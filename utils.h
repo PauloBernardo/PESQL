@@ -15,12 +15,12 @@ int getType (char *tipo) {
 
 char ** processar (char * resposta) {
     char **processado;
-    int i, j= 0, x = 0, parenteses = 0;
+    int i, j= 0, x = 0;
     processado = malloc (255 * sizeof(char *));
     processado[0] = malloc(255*sizeof(char));
     //printf ("asjdg");
     for (i = 0; i < strlen(resposta); i++) {
-        if (resposta[i] != ' ' || parenteses == 1) {
+        if (resposta[i] != ' ') {
              processado[j][x++] = resposta[i];
         } else if (x != 0){
             processado[j][x] = '\0';
@@ -29,24 +29,46 @@ char ** processar (char * resposta) {
             processado[j] = malloc(255*sizeof(char));
         }
         if (resposta[i] == '(') {
-            parenteses = 1;
-        } else if (resposta[i] == ')') {
-            parenteses = 0;
+            i++;
+            while (i < strlen(resposta)) {
+                if (resposta[i] != ')') {
+                    processado[j][x++] = resposta[i];
+                    i++;
+                }else {
+                    processado[j][x++] = resposta[i];
+                    break;
+                }
+            }
         }
-        
+        if (resposta[i] == '"') {
+            i++;
+            while (i < strlen(resposta)) {
+                if (resposta[i] != '"') {
+                    processado[j][x++] = resposta[i];
+                    i++;
+                } else {
+                    processado[j][x++] = resposta[i];
+                    break;
+                }
+            }
+        }
     }
     return processado;
 }
 char** splitByChars (char *resposta, char *chars) {
     char **processado;
-    int i, j= 0, x = 0, flag = 0, z;
+    int i, j= 0, x = 0, flag = 0, z, aspas = 1;
     processado = malloc (255 * sizeof(char *));
     processado[0] = malloc(255*sizeof(char));
     //printf ("asjdg");
     for (i = 0; i < strlen(resposta); i++) {
         for (z = 0; z < strlen (chars); z++) {
-            //printf ("%c %c", chars[z], resposta[i]);
-            if (resposta[i] == chars[z]) flag = 1;
+           // printf ("%c %c", chars[z], resposta[i]);
+            if (resposta[i] == chars[z] && aspas) flag = 1;
+        }
+        if (resposta[i] == '"') {
+            if (aspas) aspas = 0;
+            else aspas = 1;
         }
         if (!flag) processado[j][x++] = resposta[i];
         else if (flag == 1 && x != 0){
@@ -61,14 +83,18 @@ char** splitByChars (char *resposta, char *chars) {
 }
 char** splitByCharsButNoRemove (char *resposta, char *chars) {
     char **processado;
-    int i, j= 0, x = 0, flag = 0, z;
+    int i, j= 0, x = 0, flag = 0, z, aspas = 1;
     processado = malloc (255 * sizeof(char *));
     processado[0] = malloc(255*sizeof(char));
     //printf ("asjdg");
     for (i = 0; i < strlen(resposta); i++) {
         for (z = 0; z < strlen (chars); z++) {
             //printf ("%c %c", chars[z], resposta[i]);
-            if (resposta[i] == chars[z]) flag = 1;
+            if (resposta[i] == chars[z] && aspas) flag = 1;
+        }
+        if (resposta[i] == '"') {
+            if (aspas) aspas = 0;
+            else aspas = 1;
         }
         if (!flag) processado[j][x++] = resposta[i];
         else if (flag == 1 && x != 0){

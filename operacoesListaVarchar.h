@@ -47,9 +47,7 @@ int * listarIdOfCollumnVarcharByValor (Varchar lista, int *ids, char * valor, ch
         }
         else if (op == '>') {
             if (strcmp (valor,  aux->valor) < 0 ) ids[i++] = aux->id;
-        }
-            
-        else if (op == '<') {
+        } else if(op == '<') {
             if (strcmp (valor,  aux->valor) > 0 ) ids[i++] = aux->id;
         }
             

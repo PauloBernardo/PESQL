@@ -111,6 +111,39 @@ DataBase alterTableAddSQL (DataBase db, char **processado, int tam) {
     novo->name = malloc (255 * sizeof(char));
     novo->tipo = malloc (20 * sizeof(char));
     strcpy (novo->name, processado[5]);
+
+    //Pegar o numero de inserções anteriores
+    int numero = numeroDeColunas(selectedTable->columns);
+    //printf ("%d\n", numero);
+    int i, j, z, tamanhoLista = 0;
+    char **todasColunas = splitByChars (getNomeColunas(selectedTable->columns), ",");
+    Collumn *collumns;
+    collumns = malloc (numero * sizeof(Collumn));
+    for (i = 1, j= 0; i < numero && todasColunas[i] != NULL; i++, j++) {
+        collumns[j] = buscaCollumn(selectedTable->columns, todasColunas[i]);
+        if (collumns[j] != NULL) {
+            switch (getType(collumns[j]->tipo)) {
+                case 1:
+                    tamanhoLista = getTamanhoListaInteger(collumns[j]->integers);
+                    break;
+                case 2:
+                    tamanhoLista = getTamanhoListaBoolean (collumns[j]->booleans);
+                    break;
+                case 3:
+                    tamanhoLista = getTamanhoListaVarchar (collumns[j]->varchars);
+                    break;
+                case 4:
+                    tamanhoLista = getTamanhoListaChar (collumns[j]->chars);
+                    break;
+                default:
+                    printf ("Erro interno, alguma coluna não possui tipo correto.\n");
+                    return db;
+                    break;
+            }
+            break;
+        }
+    }
+    //printf ("%d\n", tamanhoLista);
     switch (getType(processado[6]))
     {
     case 1:
@@ -120,6 +153,9 @@ DataBase alterTableAddSQL (DataBase db, char **processado, int tam) {
         init->id = 0;
         init->valor = 0;
         novo->integers =  init;
+        for (i = 1; i < tamanhoLista; i++) {
+            insereInteger (novo->integers, 0);
+        }
         break;
     case 2:
         strcpy(novo->tipo,"BOOLEAN");
@@ -128,6 +164,9 @@ DataBase alterTableAddSQL (DataBase db, char **processado, int tam) {
         init1->id = 0;
         init1->valor = false;
         novo->booleans =  init1;
+        for (i = 1; i < tamanhoLista; i++) {
+            insereBoolean (novo->booleans, false);
+        }
         break;
     case 3:
         strcpy (novo->tipo,"VARCHAR");
@@ -140,6 +179,9 @@ DataBase alterTableAddSQL (DataBase db, char **processado, int tam) {
         inicio->valor = malloc((inicio->size +1) *sizeof(char));
         strcmp (inicio->valor , " ");
         novo->varchars =  inicio;
+        for (i = 1; i < tamanhoLista; i++) {
+            insereVarchar (novo->varchars, "");
+        }
         break;
     case 4:
         strcpy (novo->tipo,"CHAR");
@@ -148,12 +190,16 @@ DataBase alterTableAddSQL (DataBase db, char **processado, int tam) {
         init2->id = 0;
         init2->valor = 0;
         novo->chars =  init2;
+        for (i = 1; i < tamanhoLista; i++) {
+            insereChar (novo->chars, 0);
+        }
         break;
     default:
         printf ("Erro, tipo da coluna não suportado.\n");
+        return db;
         break;
     }
-    selectedTable->columns = addCollumn (selectedTable->columns, novo);
+     selectedTable->columns = addCollumn (selectedTable->columns, novo);
     return db;
 }
 
@@ -176,6 +222,25 @@ DataBase alterTableModifySQL (DataBase db, char **processado, int tam) {
          printf ("Erro, collumn não existe.\n");
         return db;
     }
+    int tamanhoLista = 0, i;
+    switch (getType(collumn->tipo)) {
+        case 1:
+            tamanhoLista = getTamanhoListaInteger(collumn->integers);
+            break;
+        case 2:
+            tamanhoLista = getTamanhoListaBoolean (collumn->booleans);
+            break;
+        case 3:
+            tamanhoLista = getTamanhoListaVarchar (collumn->varchars);
+            break;
+        case 4:
+            tamanhoLista = getTamanhoListaChar (collumn->chars);
+            break;
+         default:
+            printf ("Erro interno, alguma coluna não possui tipo correto.\n");
+            return db;
+            break;
+    }
     switch (getType(processado[6]))
     {
     case 1:
@@ -185,6 +250,9 @@ DataBase alterTableModifySQL (DataBase db, char **processado, int tam) {
         init->id = 0;
         init->valor = 0;
         collumn->integers =  init;
+        for (i = 1; i < tamanhoLista; i++) {
+            insereInteger (collumn->integers, 0);
+        }
         break;
     case 2:
         strcpy(collumn->tipo,"BOOLEAN");
@@ -193,6 +261,9 @@ DataBase alterTableModifySQL (DataBase db, char **processado, int tam) {
         init1->id = 0;
         init1->valor = false;
         collumn->booleans =  init1;
+        for (i = 1; i < tamanhoLista; i++) {
+            insereBoolean (collumn->booleans, false);
+        }
         break;
     case 3:
         strcpy (collumn->tipo,"VARCHAR");
@@ -204,6 +275,9 @@ DataBase alterTableModifySQL (DataBase db, char **processado, int tam) {
         inicio->valor = malloc((inicio->size +1) *sizeof(char));
         strcmp (inicio->valor , " ");
         collumn->varchars =  inicio;
+        for (i = 1; i < tamanhoLista; i++) {
+            insereVarchar (collumn->varchars, "");
+        }
         break;
     case 4:
         strcpy (collumn->tipo,"CHAR");
@@ -212,6 +286,9 @@ DataBase alterTableModifySQL (DataBase db, char **processado, int tam) {
         init2->id = 0;
         init2->valor = 0;
         collumn->chars =  init2;
+        for (i = 1; i < tamanhoLista; i++) {
+            insereChar (collumn->chars, 0);
+        }
         break;
     default:
         printf ("Erro, tipo da coluna não suportado.\n");
@@ -236,7 +313,7 @@ DataBase insertIntoValuesSQL (DataBase db, char *table, char *collumns, char *va
     int numeroColunas = 0, numeroValores = 0, j;
     for (j = 0; j < 255 && nomeColunas[j] != NULL; j++) numeroColunas++;
     for (j = 0; j < 255 && valores[j] != NULL; j++) {
-       // printf ("%s\n", valores[j]);
+      //  printf ("%s\n", valores[j]);
         numeroValores++;
     }
     if (numeroColunas != numeroValores) {
@@ -549,7 +626,7 @@ void selectFromWhereSQL (DataBase db, char ** processado,int tam, int num) {
     char **nomeExpressao = splitByCharsButNoRemove (expressao, "=><");
     int numeroExpressaoPesquisadas = 0;
     for (i = 0; i < 255 && nomeExpressao[i] != NULL; i++) {
-         //printf("%s\n", nomeExpressao[i]);
+        // printf("%s\n", nomeExpressao[i]);
          numeroExpressaoPesquisadas++;
     }
     if (numeroExpressaoPesquisadas != 3) {
@@ -631,7 +708,8 @@ void selectFromWhereSQL (DataBase db, char ** processado,int tam, int num) {
         }
         printf ("\n");
         Collumn aux;
-        for (i = 0; i < tamanhoLista && listaIDs[i] > 0; i++) {
+        for (i = 0; i < tamanhoLista && listaIDs[i] >= 0; i++) {
+            if (listaIDs[i] == 0) continue;
             //printf("%d", listaIDs[i]);
             for (j = 1; j < numero; j++) {
                 aux = buscaCollumn (selectedTable->columns, todasColunas[j]);
@@ -666,8 +744,8 @@ void selectFromWhereSQL (DataBase db, char ** processado,int tam, int num) {
         }
         printf ("\n");
         Collumn aux;
-        for (i = 0; i < tamanhoLista && listaIDs[i] > 0; i++) {
-            
+        for (i = 0; i < tamanhoLista && listaIDs[i] >= 0; i++) {
+            if (listaIDs[i] == 0) continue;
             for (j = 0; j < numeroColunasPesquisadas; j++) {
                 aux = buscaCollumn (selectedTable->columns, nomeColunas[j]);
                 switch (getType(aux->tipo)) {
@@ -688,4 +766,64 @@ void selectFromWhereSQL (DataBase db, char ** processado,int tam, int num) {
             printf ("\n");
         }
     }
+}
+
+
+DataBase updateSQL (DataBase db, char **processado, int tam) {
+    int i, j;
+    if (db == NULL) {
+        printf ("Erro, banco de dados não selecionado.\n");
+        return db;
+    }
+    Table selectedTable = buscaTable (db->tables, processado[1]);
+    if (selectedTable == NULL) {
+        printf ("Erro, table não existe.\n");
+        return db;
+    }
+    //Procura pelo where
+    bool existeWhere = false;
+    int ondeFicaWhere, numeroExpressaoPesquisadas;
+    char *expressao;
+    char **nomeExpressao;
+    for (i = 3; i < tam; i++) {
+        if (strcmp(processado[i], "WHERE") == 0) {
+            existeWhere = true;
+            ondeFicaWhere = i;
+        }
+    }
+    if (existeWhere) {
+        expressao = malloc (255*sizeof(255));
+        strcpy (expressao, "");
+        for (i = ondeFicaWhere+1; i < tam; i++) {
+            strcat (expressao, processado[i]);
+        }
+        nomeExpressao = splitByCharsButNoRemove (expressao, "=><");
+        numeroExpressaoPesquisadas = 0;
+        for (i = 0; i < 255 && nomeExpressao[i] != NULL; i++) {
+             printf("%s\n", nomeExpressao[i]);
+            numeroExpressaoPesquisadas++;
+        }
+        if (numeroExpressaoPesquisadas != 3) {
+            printf ("NOT SUPPORTED YET\n");
+            return db;
+        }
+    }
+
+    //GET OS UPDATES
+    char *update;
+    update = malloc (255 * sizeof(char));
+    strcpy (update, "");
+    for (i = 3; i < ondeFicaWhere; i++) {
+        strcat (update, processado[i]);
+    }
+    char **updates = splitByChars(update, " ");
+    strcpy (update, "");
+    for (i = 0; i < 255 && updates[i] != NULL; i++) {
+        strcat (update, updates[i]);
+    }
+    updates = splitByChars (update, ",");
+    for (i = 0; i < 255 && updates[i] != NULL; i++) {
+        printf ("%s\n", updates[i]);
+    }
+    return db;
 }

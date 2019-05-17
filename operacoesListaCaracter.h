@@ -39,10 +39,10 @@ int * listarIdOfCollumnCharByValor (Char lista, int *ids, char valor, char op) {
         if (op == '='){
             if (valor ==  aux->valor) ids[i++] = aux->id;
         }
-        else if (op == '>') {
+        if (op == '>') {
             if (valor <  aux->valor) ids[i++] = aux->id;   
         }
-        else if (op == '<') {
+        if (op == '<') {
             if (valor >  aux->valor) ids[i++] = aux->id;   
         }
         aux = aux->proximo;

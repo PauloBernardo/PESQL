@@ -333,9 +333,11 @@ int * listarIdOfCollumnIntegerByValor (Integer lista, int *ids, int valor, char 
     while (aux != NULL) {
        if (op == '=') {
           if (valor == aux->valor) ids[i++] = aux->id;
-       } else if (op == '>') {
+       }
+        if (op == '>') {
           if (valor < aux->valor) ids[i++] = aux->id;
-       } else if (op == '<') {
+       }
+        if (op == '<') {
           if (valor > aux->valor) ids[i++] = aux->id;
        }
        
