@@ -68,12 +68,14 @@ DataBase decoder (DataBase raiz, char **processado, int tam){
         if (op == 1) selectFromSQL (db, processado, tam, from);
         if (op == 2) selectFromWhereSQL (db, processado, tam, from);
     }
-    if (tam > 3) {
+    if (tam >= 3) {
         if (strcmp(processado[0], "UPDATE") == 0 && strcmp(processado[2], "SET") == 0) {
             
              updateSQL (db, processado, tam);
-        }
-         
+        }  
+        if (strcmp (processado[0], "DELETE") == 0 && strcmp(processado[1], "FROM") == 0) {
+            deleteWhereSQL (db, processado, tam);
+        }  
     }
         
     return raiz;

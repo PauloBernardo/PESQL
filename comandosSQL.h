@@ -635,6 +635,10 @@ void selectFromWhereSQL (DataBase db, char ** processado,int tam, int num) {
     }
     
         int numero = numeroDeColunas(selectedTable->columns);
+        if (numero == 1) {
+            printf ("Erro, não há colunas\n");
+            return;
+        }
         char **todasColunas = splitByChars (getNomeColunas(selectedTable->columns), ",");
         Collumn *collumns;
         collumns = malloc (numero * sizeof(Collumn));
@@ -649,7 +653,7 @@ void selectFromWhereSQL (DataBase db, char ** processado,int tam, int num) {
        // printf ("OPA");
         //printf ("%s\n", collumns[0]->tipo);
         if (collumns[op] == NULL) {
-            printf ("Erro, deu merda aqui");
+            printf ("Erro não esperado.\n");
             return;
         } else {
             //printf ("%s\n", collumns[op]->name);
@@ -800,7 +804,7 @@ DataBase updateSQL (DataBase db, char **processado, int tam) {
         nomeExpressao = splitByCharsButNoRemove (expressao, "=><");
         numeroExpressaoPesquisadas = 0;
         for (i = 0; i < 255 && nomeExpressao[i] != NULL; i++) {
-             printf("%s\n", nomeExpressao[i]);
+            // printf("%s\n", nomeExpressao[i]);
             numeroExpressaoPesquisadas++;
         }
         if (numeroExpressaoPesquisadas != 3) {
@@ -811,11 +815,21 @@ DataBase updateSQL (DataBase db, char **processado, int tam) {
 
     //GET OS UPDATES
     char *update;
+    int quantidadeDeUpdates = 0;
+    char **nomeColunas;
+    char **valores;
     update = malloc (255 * sizeof(char));
     strcpy (update, "");
-    for (i = 3; i < ondeFicaWhere; i++) {
-        strcat (update, processado[i]);
+    if (existeWhere) {
+        for (i = 3; i < ondeFicaWhere; i++) {
+            strcat (update, processado[i]);
+        }
+    } else {
+        for (i = 3; i < tam; i++) {
+            strcat (update, processado[i]);
+        }
     }
+    
     char **updates = splitByChars(update, " ");
     strcpy (update, "");
     for (i = 0; i < 255 && updates[i] != NULL; i++) {
@@ -823,7 +837,374 @@ DataBase updateSQL (DataBase db, char **processado, int tam) {
     }
     updates = splitByChars (update, ",");
     for (i = 0; i < 255 && updates[i] != NULL; i++) {
-        printf ("%s\n", updates[i]);
+       // printf ("%s\n", updates[i]);
+        quantidadeDeUpdates++;
+    }
+    //printf ("%d\n", quantidadeDeUpdates);
+    nomeColunas = malloc (quantidadeDeUpdates * sizeof(char *));
+    valores = malloc (quantidadeDeUpdates * sizeof(char *));
+    for (i = 0; i < 255 && updates[i] != NULL; i++) {
+         char **aux = splitByChars (updates[i], "=");
+         nomeColunas[i] = aux[0];
+         valores[i] =  aux[1];
+       // printf ("%s\n", updates[i]);
+       // quantidadeDeUpdates++;
+    }
+
+    //VERIFICA SE AS COLUNAS EXISTEM E SE OS VALORES ESTÃO CORRETOS
+    Collumn collumn;
+    for (j = 0; j < quantidadeDeUpdates; j++) {
+        collumn = buscaCollumn(selectedTable->columns, nomeColunas[j]);
+        if (collumn == NULL) {
+            printf ("Erro: Coluna %s não existe.\n", nomeColunas[j]);
+            return db;
+        }
+        switch (getType(collumn->tipo))
+        {
+        case 1:
+            if (!verificaInteiro (valores[j])) {
+                printf ("Valor %d da coluna %s não é inteiro!\n", j, collumn->name);
+                return db;
+            }
+            break;
+        case 2:
+            if (!verificaBoolean (valores[j])) {
+                printf ("Valor %d da coluna %s não é booleano!\n", j, collumn->name);
+                return db;
+            }
+            break;
+        case 3:
+            if (!verificaVarchar (valores[j])) {
+                printf ("Valor %d da coluna %s não é string!\n", j, collumn->name);
+                return db;
+            }
+            break;
+        case 4:
+            if (!verificaChar (valores[j])) {
+                printf ("Valor %d da coluna %s não é char!\n", j, collumn->name);
+                return db;
+            }
+            break;
+        default:
+            printf ("Erro, tipo da coluna não suportado.\n");
+            break;
+        }
+    }
+
+    //VERIFICA SE A EXPRESSÃO WHERE É VALIDA
+    if (existeWhere) {
+        collumn = buscaCollumn (selectedTable->columns, nomeExpressao[0]);
+        if (collumn == NULL) {
+            printf ("Erro: Coluna %s não existe.\n", nomeExpressao[0]);
+            return db;
+        }
+        switch (getType(collumn->tipo))
+        {
+        case 1:
+            if (!verificaInteiro (nomeExpressao[2])) {
+                printf ("Valor %d da coluna %s não é inteiro!\n", 1, collumn->name);
+                return db;
+            }
+            break;
+        case 2:
+            if (!verificaBoolean (nomeExpressao[2])) {
+                printf ("Valor %d da coluna %s não é booleano!\n", 1, collumn->name);
+                return db;
+            }
+            break;
+        case 3:
+            if (!verificaVarchar (nomeExpressao[2])) {
+                printf ("Valor %d da coluna %s não é string!\n", 1, collumn->name);
+                return db;
+            }
+            break;
+        case 4:
+            if (!verificaChar (nomeExpressao[2])) {
+                printf ("Valor %d da coluna %s não é char!\n", 1, collumn->name);
+                return db;
+            }
+            break;
+        default:
+            printf ("Erro, tipo da coluna não suportado.\n");
+            break;
+        }
+    }
+
+    //PEGA OS ITENS QUE DEVERÃO SER ALTERADOS
+    int *listaIDs, tamanhoLista;
+    if (!existeWhere)
+        collumn = buscaCollumn (selectedTable->columns, nomeColunas[0]);
+    switch (getType(collumn->tipo))
+    {
+    case 1:
+        tamanhoLista = getTamanhoListaInteger (collumn->integers);
+        //printf ("Tamanho = %d\n", tamanhoLista);
+        listaIDs = malloc(tamanhoLista * sizeof(int));
+        if (existeWhere) {
+            for (i = 0; i < tamanhoLista; i++) {
+                listaIDs[i] = -1;
+            }
+            listaIDs = listarIdOfCollumnIntegerByValor (collumn->integers, listaIDs, atoi(nomeExpressao[2]), nomeExpressao[1][0]);
+            //   listaIDs = listarIdOfCollumnInteger (collumns[op]->integers, listaIDs);
+        } else {
+            listaIDs = listarIdOfCollumnInteger (collumn->integers, listaIDs);
+        }
+        //printf ("%d %c\n", atoi (nomeExpressao[2]), nomeExpressao[1][0]);
+        
+        break;
+    case 2:
+        tamanhoLista = getTamanhoListaBoolean (collumn->booleans);
+        //printf ("Tamanho = %d\n", tamanhoLista);
+        listaIDs = malloc(tamanhoLista * sizeof(int));
+        for (i = 0; i < tamanhoLista; i++) {
+            listaIDs[i] = -1;
+        }
+        if (existeWhere)
+            listaIDs = listarIdOfCollumnBooleanByValor (collumn->booleans, listaIDs, nomeExpressao[2]);
+        else 
+            listaIDs = listarIdOfCollumnBoolean(collumn->booleans, listaIDs);
+        break;
+    case 3:
+        tamanhoLista = getTamanhoListaVarchar (collumn->varchars);
+        //printf ("Tamanho = %d\n", tamanhoLista);
+        listaIDs = malloc(tamanhoLista * sizeof(int));
+        for (i = 0; i < tamanhoLista; i++) {
+            listaIDs[i] = -1;
+        }
+        if (existeWhere)
+            listaIDs = listarIdOfCollumnVarcharByValor(collumn->varchars, listaIDs, nomeExpressao[2], nomeExpressao[1][0]);
+        else 
+            listaIDs = listarIdOfCollumnVarchar(collumn->varchars, listaIDs);
+        break;
+    case 4:
+        tamanhoLista = getTamanhoListaChar (collumn->chars);
+        //printf ("Tamanho = %d\n", tamanhoLista);
+        listaIDs = malloc(tamanhoLista * sizeof(int));
+        for (i = 0; i < tamanhoLista; i++) {
+            listaIDs[i] = -1;
+        }
+        if (existeWhere)
+            listaIDs = listarIdOfCollumnCharByValor(collumn->chars, listaIDs, nomeExpressao[2][1], nomeExpressao[1][0]);
+        else 
+            listaIDs = listarIdOfCollumnChar(collumn->chars, listaIDs);
+        break;
+    default:
+        printf ("Erro, tipo da coluna não suportado.\n");
+        break;
+    }
+
+    //EXECUTA O UPDATE 
+    for (i = 0; i < tamanhoLista && listaIDs[i] >= 0; i++) {
+        if (listaIDs[i] == 0) continue;
+        for (j = 0; j < quantidadeDeUpdates; j++) {
+            collumn = buscaCollumn (selectedTable->columns, nomeColunas[j]);
+            switch (getType(collumn->tipo)) {
+                case 1:
+                    buscaIntegerById(listaIDs[i], collumn->integers)->valor = atoi(valores[j]);
+                    break;
+                case 2:
+                    if (strcmp (valores[j], "TRUE") == 0)
+                        buscaBooleanById(listaIDs[i], collumn->booleans)->valor = true;
+                    else  buscaBooleanById(listaIDs[i], collumn->booleans)->valor = false;
+                    break;
+                case 3:
+                    strcpy (buscaVarcharById(listaIDs[i], collumn->varchars)->valor, valores[j]);
+                    break;
+                case 4:
+                    buscaCharById(listaIDs[i], collumn->chars)->valor = valores[j][1];
+                    break;
+            }
+        }
+        //printf ("\n");
+    }
+    printf ("UPDATE FEITO COM SUCESSO!\n");
+    return db;
+}
+
+DataBase deleteWhereSQL (DataBase db, char **processado, int tam) {
+    int i, j;
+    if (db == NULL) {
+        printf ("Erro, banco de dados não selecionado.\n");
+        return db;
+    }
+    Table selectedTable = buscaTable (db->tables, processado[2]);
+    if (selectedTable == NULL) {
+        printf ("Erro, table não existe.\n");
+        return db;
+    }
+    //PROCURA PELO WHERE
+    bool existeWhere = false;
+    int ondeFicaWhere, numeroExpressaoPesquisadas;
+    char *expressao;
+    char **nomeExpressao;
+    for (i = 3; i < tam; i++) {
+        if (strcmp(processado[i], "WHERE") == 0) {
+            existeWhere = true;
+            ondeFicaWhere = i;
+            break;
+        }
+    }
+    if (existeWhere) {
+        expressao = malloc (255*sizeof(255));
+        strcpy (expressao, "");
+        for (i = ondeFicaWhere+1; i < tam; i++) {
+            strcat (expressao, processado[i]);
+        }
+        nomeExpressao = splitByCharsButNoRemove (expressao, "=><");
+        numeroExpressaoPesquisadas = 0;
+        for (i = 0; i < 255 && nomeExpressao[i] != NULL; i++) {
+            // printf("%s\n", nomeExpressao[i]);
+            numeroExpressaoPesquisadas++;
+        }
+        if (numeroExpressaoPesquisadas != 3) {
+            printf ("NOT SUPPORTED YET\n");
+            return db;
+        }
+    }
+
+    //VERIFICA SE A EXPRESSÃO WHERE É VALIDA
+    Collumn collumn;
+    if (existeWhere) {
+        collumn = buscaCollumn (selectedTable->columns, nomeExpressao[0]);
+        if (collumn == NULL) {
+            printf ("Erro: Coluna %s não existe.\n", nomeExpressao[0]);
+            return db;
+        }
+        switch (getType(collumn->tipo))
+        {
+        case 1:
+            if (!verificaInteiro (nomeExpressao[2])) {
+                printf ("Valor %d da coluna %s não é inteiro!\n", 1, collumn->name);
+                return db;
+            }
+            break;
+        case 2:
+            if (!verificaBoolean (nomeExpressao[2])) {
+                printf ("Valor %d da coluna %s não é booleano!\n", 1, collumn->name);
+                return db;
+            }
+            break;
+        case 3:
+            if (!verificaVarchar (nomeExpressao[2])) {
+                printf ("Valor %d da coluna %s não é string!\n", 1, collumn->name);
+                return db;
+            }
+            break;
+        case 4:
+            if (!verificaChar (nomeExpressao[2])) {
+                printf ("Valor %d da coluna %s não é char!\n", 1, collumn->name);
+                return db;
+            }
+            break;
+        default:
+            printf ("Erro, tipo da coluna não suportado.\n");
+            break;
+        }
+    }
+
+    //PEGA TODAS AS COLUNAS
+    int numero = numeroDeColunas(selectedTable->columns);
+    if (numero == 1) {
+        printf ("Erro, não há colunas\n");
+        return db;
+    }
+    char **todasColunas = splitByChars (getNomeColunas(selectedTable->columns), ",");
+    Collumn *collumns;
+    collumns = malloc (numero * sizeof(Collumn));
+    for (i = 1, j= 0; i < numero && todasColunas[i] != NULL; i++, j++) {
+        collumns[j] = buscaCollumn(selectedTable->columns, todasColunas[i]);
+        if (collumns[j] == NULL) {
+            printf("Erro, problema ao pegar colunas");
+            return db;
+        }
+    }
+
+    //printf ("Cheguei aqui 1\n");
+    //PEGA OS ITENS QUE DEVERÃO SER DELETADOS
+    int *listaIDs, tamanhoLista;
+    if (!existeWhere)
+        collumn = collumns[0];
+    switch (getType(collumn->tipo))
+    {
+    case 1:
+        tamanhoLista = getTamanhoListaInteger (collumn->integers);
+        //printf ("Tamanho = %d\n", tamanhoLista);
+        listaIDs = malloc(tamanhoLista * sizeof(int));
+        if (existeWhere) {
+            for (i = 0; i < tamanhoLista; i++) {
+                listaIDs[i] = -1;
+            }
+            listaIDs = listarIdOfCollumnIntegerByValor (collumn->integers, listaIDs, atoi(nomeExpressao[2]), nomeExpressao[1][0]);
+            //   listaIDs = listarIdOfCollumnInteger (collumns[op]->integers, listaIDs);
+        } else {
+            listaIDs = listarIdOfCollumnInteger (collumn->integers, listaIDs);
+        }
+        //printf ("%d %c\n", atoi (nomeExpressao[2]), nomeExpressao[1][0]);
+        
+        break;
+    case 2:
+        tamanhoLista = getTamanhoListaBoolean (collumn->booleans);
+        //printf ("Tamanho = %d\n", tamanhoLista);
+        listaIDs = malloc(tamanhoLista * sizeof(int));
+        for (i = 0; i < tamanhoLista; i++) {
+            listaIDs[i] = -1;
+        }
+        if (existeWhere)
+            listaIDs = listarIdOfCollumnBooleanByValor (collumn->booleans, listaIDs, nomeExpressao[2]);
+        else 
+            listaIDs = listarIdOfCollumnBoolean(collumn->booleans, listaIDs);
+        break;
+    case 3:
+        tamanhoLista = getTamanhoListaVarchar (collumn->varchars);
+        //printf ("Tamanho = %d\n", tamanhoLista);
+        listaIDs = malloc(tamanhoLista * sizeof(int));
+        for (i = 0; i < tamanhoLista; i++) {
+            listaIDs[i] = -1;
+        }
+        if (existeWhere)
+            listaIDs = listarIdOfCollumnVarcharByValor(collumn->varchars, listaIDs, nomeExpressao[2], nomeExpressao[1][0]);
+        else 
+            listaIDs = listarIdOfCollumnVarchar(collumn->varchars, listaIDs);
+        break;
+    case 4:
+        tamanhoLista = getTamanhoListaChar (collumn->chars);
+        //printf ("Tamanho = %d\n", tamanhoLista);
+        listaIDs = malloc(tamanhoLista * sizeof(int));
+        for (i = 0; i < tamanhoLista; i++) {
+            listaIDs[i] = -1;
+        }
+        if (existeWhere)
+            listaIDs = listarIdOfCollumnCharByValor(collumn->chars, listaIDs, nomeExpressao[2][1], nomeExpressao[1][0]);
+        else 
+            listaIDs = listarIdOfCollumnChar(collumn->chars, listaIDs);
+        break;
+    default:
+        printf ("Erro, tipo da coluna não suportado.\n");
+        break;
+    }
+
+    //printf ("Cheguei aqui 2\n");
+    //DELETAR ITENS
+    for (i = 0; i < tamanhoLista && listaIDs[i] >= 0; i++) {
+        if (listaIDs[i] == 0) continue;
+        for (j = 0; j < numero && collumns[j] != NULL; j++) {
+            collumn = collumns[j];
+            switch (getType(collumn->tipo)) {
+                case 1:
+                    removeIntegerById(collumn->integers, listaIDs[i]);
+                    break;
+                case 2:
+                    removeBooleanById(collumn->booleans, listaIDs[i]);
+                    break;
+                case 3:
+                    removeVarcharById(collumn->varchars, listaIDs[i]);
+                    break;
+                case 4:
+                    removeCharById(collumn->chars, listaIDs[i]);
+                    break;
+            }
+        }
+        //printf ("\n");
     }
     return db;
 }
