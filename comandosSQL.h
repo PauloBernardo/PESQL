@@ -12,7 +12,7 @@ DataBase createDataBaseSQL (DataBase raiz, char **processado, int tam) {
     //printf("%s\n", novo->name);
     return addDataBase(raiz, novo);
 }
-DataBase createTableSQL (DataBase db, char **processado) {
+DataBase createTableSQL (DataBase db, char nomeTable) {
     if (db == NULL) {
         printf ("Erro, banco de dados não selecionado.\n");
         return db;
@@ -21,7 +21,7 @@ DataBase createTableSQL (DataBase db, char **processado) {
     novo = malloc (sizeof(struct table));
     novo->name = malloc (255 * sizeof(char));
     //printf("%s\n", processado[2]);
-    strcpy (novo->name, processado[2]);
+    strcpy (novo->name, nomeTable);
     //printf("%s\n", novo->name);
     if (db->tables == NULL) {
         Table raiz;
@@ -1098,6 +1098,7 @@ DataBase deleteWhereSQL (DataBase db, char **processado, int tam) {
             break;
         default:
             printf ("Erro, tipo da coluna não suportado.\n");
+            return db;
             break;
         }
     }

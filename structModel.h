@@ -13,6 +13,7 @@ struct table {
 };
 typedef struct table *Table;
 struct collumn {
+    
     char *name;
     char *tipo;
     bool primary_key;

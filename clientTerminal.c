@@ -7,6 +7,7 @@
 #include "operacoesListaVarchar.h"
 #include "utils.h"
 #include "comandosSQL.h"
+#include "saveAndRestore.h"
 
 DataBase db;
 DataBase decoder (DataBase raiz, char **processado, int tam){
@@ -19,7 +20,10 @@ DataBase decoder (DataBase raiz, char **processado, int tam){
             return removeDatabase(raiz, processado[2]);
         }
         if (strcmp(processado[0], "CREATE") == 0 && strcmp(processado[1], "TABLE") == 0) {
-            db = createTableSQL(db, processado);
+            db = createTableSQL(db, processado[2]);
+        }
+        if (strcmp(processado[0], "SAVE") == 0 && strcmp(processado[1], "IN") == 0) {
+            save (processado[2], raiz);
         }
     }
     else if (tam == 4) {
@@ -39,6 +43,9 @@ DataBase decoder (DataBase raiz, char **processado, int tam){
           }
           if (strcmp(processado[0], "DESCRIBE") == 0) {
               describeSQL (db, processado[1]);
+          }
+          if (strcmp(processado[0], "RESTORE") == 0) {
+              raiz = restore (processado[1]);
           }
     } else if (tam == 6){
         if (strcmp(processado[0], "ALTER") == 0 && strcmp(processado[1], "TABLE") == 0 && strcmp (processado[3], "DROP") == 0 && strcmp(processado[4], "COLLUMN") == 0) {

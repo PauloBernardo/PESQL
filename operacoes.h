@@ -7,8 +7,6 @@ DataBase addDataBase (DataBase db, DataBase novo) {
        db->esquerda = addDataBase (db->esquerda, novo);
     else if (strcmp(db->name, novo->name) < 0)
        db->direita = addDataBase (db->direita, novo);
-    else
-        printf("Erro, banco já existe");
     return db;
 }
 void printDataBases (DataBase raiz) {
@@ -49,8 +47,6 @@ Table addTable (Table db, Table novo) {
        db->esquerda = addTable (db->esquerda, novo);
     else if (strcmp(db->name, novo->name) < 0)
        db->direita = addTable (db->direita, novo);
-    else
-        printf("Erro, table já existe");
     return db;
 }
 Collumn addCollumn (Collumn db, Collumn novo) { 
@@ -60,15 +56,13 @@ Collumn addCollumn (Collumn db, Collumn novo) {
        db->esquerda = addCollumn (db->esquerda, novo);
     else if (strcmp(db->name, novo->name) < 0)
        db->direita = addCollumn (db->direita, novo);
-    else
-        printf("Erro, coluna já existe");;
     return db;
 }
  DataBase removeraizDatabase (DataBase r) {  
     struct database *p, *q;
     if (r->esquerda == NULL) {
        q = r->direita;
-       free (r);
+       free (r);  
        return q;
     }
     p = r; q = r->esquerda;

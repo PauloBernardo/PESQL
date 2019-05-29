@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 int getType (char *tipo) {
+    if (tipo == NULL) return 0;
     if (strcmp(tipo, "INTEGER") == 0)
         return 1;
     if (strcmp(tipo, "BOOLEAN") == 0)
