@@ -12,7 +12,7 @@ DataBase createDataBaseSQL (DataBase raiz, char **processado, int tam) {
     //printf("%s\n", novo->name);
     return addDataBase(raiz, novo);
 }
-DataBase createTableSQL (DataBase db, char nomeTable) {
+DataBase createTableSQL (DataBase db, char *nomeTable) {
     if (db == NULL) {
         printf ("Erro, banco de dados não selecionado.\n");
         return db;

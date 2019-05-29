@@ -201,6 +201,12 @@ insereBoolean (Booleano p, bool x)
    nova->proximo = aux->proximo;
    aux->proximo = nova;
 }
+void restoreBoolean (Booleano p, Booleano novo) {
+   Booleano aux;
+   aux = p;
+   while (aux->proximo != NULL) aux = aux->proximo;
+   aux->proximo = novo;
+}
 void printListBooleano(Booleano lista){
     Booleano aux;
     aux = lista;
@@ -300,6 +306,12 @@ insereInteger (Integer p, int x)
    nova->id = aux->id + 1;
    nova->proximo = aux->proximo;
    aux->proximo = nova;
+}
+void restoreInteger (Integer p, Integer novo) {
+   Integer aux;
+   aux = p;
+   while (aux->proximo != NULL) aux = aux->proximo;
+   aux->proximo = novo;
 }
 void printList(Integer lista){
     Integer aux;

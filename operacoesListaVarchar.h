@@ -19,6 +19,12 @@ insereVarchar (Varchar p, char *x)
    nova->proximo = aux->proximo;
    aux->proximo = nova;
 }
+void restoreVarchar (Varchar p, Varchar novo) {
+    Varchar aux;
+   aux = p;
+   while (aux->proximo != NULL) aux = aux->proximo;
+   aux->proximo = novo;
+}
 void printListVarchar(Varchar lista){
     Varchar aux;
     aux = lista;

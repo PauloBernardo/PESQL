@@ -13,6 +13,12 @@ insereChar (Char p, char x)
    nova->proximo = aux->proximo;
    aux->proximo = nova;
 }
+void restoreChar (Char p, Char novo) {
+   Char aux;
+   aux = p;
+   while (aux->proximo != NULL) aux = aux->proximo;
+   aux->proximo = novo;
+}
 void printListChar(Char lista){
     Char aux;
     aux = lista;
